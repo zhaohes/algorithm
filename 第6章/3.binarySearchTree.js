@@ -36,20 +36,139 @@ class BinarySearchTree {
         }
         return node.key;
     }
-    /* 搜索特定值 */
+    /* 搜索特定值：使用递归 */
     search(key) {
         return this.searchNode(this.root, key);
+    }
+    /* 删除节点 */
+    remove(key) {
+        /*    
+        1。查找到节点，没有则返回false。
+        2.分情况对节点进行删除
+        2.1如果节点是叶子节点
+        2.2节点只有一个子节点
+        2.3节点有连个字节点 
+        */
+        //1.查找到要删除的节点。
+        let current = this.root;
+        let isLeftChild = true;
+        let parent = null;
+        if (!this.root) return false;//假如是个空树,返回false
+        while (current.key !== key) {
+            parent = current;
+            if (key < current.key) {
+                current = current.left;
+                isLeftChild = true;
+            } else if (key > current.key) {
+                current = current.right;
+                isLeftChild = false;
+            }
+            if (!current) {
+                return false;
+            }
+        }
+        //current已经找到了。
+        //2.1如果要删除的节点是叶子节点。
+        if (!current.left && !currrent.right) {
+            //current节点是父节点的左子节点
+            if (current === this.root) {
+                this.root = null;
+            } else if (isLeftChild) {
+                parent.left = null;
+            } else {
+                parent.right = null;
+            }
+        }
+        //2.2要删除的节点只有一个左子节点。
+        else if (current.left && !current.right) {
+            if (current === this.root) {
+                this.root = current.left;
+            } else if (isLeftChild) {
+                parent.left = current.left;
+            } else {
+                parent.right = current.left;
+            }
+        }
+        //2.2要删除的节点只有一个右子节点。
+        else if (current.right && !current.left) {
+            if (current === this.root) {
+                this.root = current.root;
+            } else if (isLeftChild) {
+                parent.left = current.right;
+            } else {
+                parent.right = current.right;
+            }
+        }
+        /* 
+        要删除的current节点有左右两个子节点,
+        这种时候需要把current的左子树的节点提上去，或者右子树的节点提上去。
+        需要满足的条件是:左子树比current小一点点和右子树比current大一点点
+        左子树比current小一点点的就是current的前驱，也就是左子树的最右边的节点。
+        右子树比current大一点的的就是current的后继，也就是右子树的最左的节点。
+        所以首先要找到这个后继节点或者前驱，这里我们来找后继。
+        */
+        else {
+            let successor = this.getSuccessor(current);
+            if (current === this.root) {
+                this.root = successor;
+            } else {
+                if (isLeftChild) {
+                    parent.left = successor
+                } else {
+                    parent.right = successor;
+                }
+            }
+            successor.left = current.left;
+        }
+    }
+    getSuccessor(delNode) {
+        let successor = delNode;
+        let successorParent = null;
+        let current = delNode.right;
+        while (current != null) {
+            successorParent = successor;
+            successor = current;
+            current = current.left;
+        }
+        /* 如果后继节点不是删除节点的直接右节点 */
+        if (successor !== delNode.right) {
+            successorParent.left = successor.right;
+            successor.right = delNode.right;
+        }
+        return successor;
+
+    }
+    getPioneer(delNode) {
+        let pionerr = delNode.left;
+        while (pionerr.right) {
+            pionerr = pionerr.right;
+        }
+        return pionerr;
+    }
+    /* 使用循环写 */
+    searchV2(key) {
+        let node = this.root;
+        while (node != null) {
+            if (key < node.key) {
+                node = node.left;
+            } else if (key > node.key) {
+                node = node.right;
+            } else {
+                return node;
+            }
+        }
+        return null;
     }
     searchNode(node, key) {
         if (!node) return null;
         if (node.key === key) {
             return node;
+        } else if (key < node.key) {
+            return this.searchNode(node.left, key)
+        } else if (key > node.key) {
+            return this.searchNode(node.right, key);
         }
-        let re = this.searchNode(node.left, key)
-        if (re) {
-            return re;
-        }
-        return this.searchNode(node.right, key) || null;
+        return null;
     }
     insertNode(node, newNode) {
         if (newNode.key < node.key) {
@@ -142,5 +261,17 @@ let min = binarySearchTree.min();
 let max = binarySearchTree.max();
 // console.log(max)
 
-let node = binarySearchTree.search(5);
+// let node = binarySearchTree.search(5);
 // console.log(node)
+
+// let node2 = binarySearchTree.searchV2(14);
+// console.log(node2)
+
+// binarySearchTree.remove(9);
+// binarySearchTree.remove(7);
+// binarySearchTree.remove(15);
+// let arr4 = [];
+// binarySearchTree.postOrderTraversal(function (node) {
+//     arr4.push(node.key);
+// });
+// console.log(arr4);// [3, 6, 5, 8, 10, 9, 7, 12, 14, 13, 18, 25, 20, 15, 11]
